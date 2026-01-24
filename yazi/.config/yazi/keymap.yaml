@@ -1,0 +1,11 @@
+manager:
+  u: {
+    run: "~/.config/yazi/openers/mpv-url.sh",
+    desc: "Open URL with MPV"
+  }
+  keymap:{
+    on: H
+    run: toggle_hidden
+    desc: Toggle hidden files
+  }
+    

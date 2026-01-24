@@ -1,0 +1,32 @@
+openers:
+  video:
+    - run: "~/.config/yazi/openers/mpv.sh \"$@\""
+      desc: "Play with MPV"
+      block: true
+      for:
+        - "video/*"
+
+  url:
+    - run: "~/.config/yazi/openers/mpv-url.sh"
+      desc: "Play URL with MPV (clipboard)"
+      block: false
+      for:
+        - "*"
+
+  playlist:
+    - run: "~/.config/yazi/openers/mpv-playlist.sh \"$@\""
+      desc: "Play playlist with MPV"
+      block: false
+      for:
+        - "*"
+
+previewers:
+  video:
+    run: "~/.config/yazi/plugins/preview-video.sh \"$1\""
+    for:
+      - "video/*"
+commands:
+  url: "url"
+manager:
+  show_hidden: true
+
