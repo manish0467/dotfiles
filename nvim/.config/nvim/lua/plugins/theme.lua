@@ -1,0 +1,1 @@
+/home/alen/.config/omarchy/current/theme/neovim.lua
