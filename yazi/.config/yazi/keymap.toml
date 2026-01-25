@@ -1,0 +1,16 @@
+# Yazi keymap configuration
+
+[[mgr.prepend_keymap]]
+on = "u"
+run = 'shell "bash $HOME/.config/yazi/openers/mpv-url.sh"'
+desc = "Open URL with MPV"
+
+[[mgr.prepend_keymap]]
+on = "H"
+run = "hidden toggle"
+desc = "Toggle hidden files"
+
+[[mgr.prepend_keymap]]
+on = ["g", "g"]
+run = 'shell "lazygit" --block'
+desc = "Open LazyGit"

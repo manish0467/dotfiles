@@ -26,7 +26,9 @@ previewers:
     for:
       - "video/*"
 commands:
-  url: "url"
+  url:
+    run: "~/.config/yazi/scripts/url.lua"
+    desc: "Open URL from clipboard with MPV"
 manager:
   show_hidden: true
 
