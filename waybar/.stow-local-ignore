@@ -1,0 +1,8 @@
+^\.git$
+^\.gitignore$
+^README\.md$
+^\.cursor$
+^\.cursor/.*$
+^\.config/waybar/waybar-last-run\.log$
+^\.config/waybar/active$
+^terminals$
