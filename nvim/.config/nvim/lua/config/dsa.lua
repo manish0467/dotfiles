@@ -1,5 +1,5 @@
 -- Global DSA mode flag
-vim.g.dsa_mode = false
+vim.g.dsa_mode = true
 
 -- Toggle function
 function _G.toggle_dsa_mode()
