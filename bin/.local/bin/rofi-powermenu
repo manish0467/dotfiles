@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Rofi power menu
+
+options=(
+    "  Shutdown"
+    "  Restart"
+    "  Suspend"
+    "  Lock"
+    "  Log out"
+)
+
+chosen=$(printf '%s\n' "${options[@]}" | rofi \
+    -dmenu \
+    -i \
+    -p "Power" \
+    -theme-str 'window { width: 280px; }' \
+    -theme-str 'listview { lines: 5; }')
+
+case "$chosen" in
+    *Shutdown)  omarchy-cmd-shutdown ;;
+    *Restart)   omarchy-cmd-reboot ;;
+    *Suspend)   systemctl suspend ;;
+    *Lock)      omarchy-lock-screen ;;
+    *"Log out") hyprctl dispatch exit ;;
+esac

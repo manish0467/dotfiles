@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Rofi app launcher
+
+rofi -show drun \
+    -p "Apps" \
+    -theme-str 'window { width: 560px; }' \
+    -theme-str 'listview { lines: 9; }'

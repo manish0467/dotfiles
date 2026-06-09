@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Rofi-based Omarchy theme picker
+
+THEMES_DIR="$HOME/.local/share/omarchy/themes"
+CUSTOM_DIR="$HOME/.config/omarchy/themes"
+CURRENT=$(omarchy-theme-current 2>/dev/null | tr '[:upper:]' '[:lower:]')
+
+# Build list: stock + custom themes
+themes=()
+while IFS= read -r -d '' dir; do
+    name=$(basename "$dir")
+    themes+=("$name")
+done < <(find "$THEMES_DIR" "$CUSTOM_DIR" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null | sort -z)
+
+# Format with checkmark on current
+entries=()
+for t in "${themes[@]}"; do
+    display="$t"
+    [[ "${t,,}" == "$CURRENT" ]] && display=" $t (current)"
+    entries+=("$display")
+done
+
+chosen=$(printf '%s\n' "${entries[@]}" | rofi \
+    -dmenu \
+    -i \
+    -p "Theme" \
+    -theme-str 'window { width: 400px; }' \
+    -theme-str 'listview { lines: 12; }')
+
+[ -z "$chosen" ] && exit 0
+
+# Strip the checkmark/annotation to get clean theme name
+theme_name=$(echo "$chosen" | sed 's/^ //;s/ (current)//')
+
+omarchy-theme-set "$theme_name"
+rofi-theme-sync

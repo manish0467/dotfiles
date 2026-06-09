@@ -1,0 +1,11 @@
+#!/bin/bash
+
+OUT="$($HOME/.local/bin/pomo-stats)"
+
+[ -z "$OUT" ] && exit 0
+
+/usr/bin/notify-send \
+  --app-name="Pomodoro" \
+  --hint=int:transient:1 \
+  "Weekly Focus Summary" \
+  "$OUT"

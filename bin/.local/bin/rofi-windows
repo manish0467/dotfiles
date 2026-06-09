@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Rofi window switcher
+
+rofi -show window \
+    -p "Windows" \
+    -theme-str 'window { width: 600px; }' \
+    -theme-str 'listview { lines: 10; }'

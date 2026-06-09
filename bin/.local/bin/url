@@ -1,0 +1,4 @@
+#!/bin/sh
+# wrapper so 'url' works from yazi's : (shell) prompt
+# calls mpv-url.sh (reads clipboard and plays)
+~/.config/yazi/openers/mpv-url.sh "$@"

@@ -1,0 +1,45 @@
+#!/bin/bash
+# Clean up music filenames
+
+# Check if directory argument is provided
+if [ -z "$1" ]; then
+    echo "Usage: clean-music-filenames <music-directory>"
+    echo "Example: clean-music-filenames ~/Music"
+    exit 1
+fi
+
+MUSIC_DIR="$1"
+
+if [ ! -d "$MUSIC_DIR" ]; then
+    echo "Error: Directory '$MUSIC_DIR' does not exist"
+    exit 1
+fi
+
+cd "$MUSIC_DIR" || exit 1
+
+echo "Cleaning filenames in: $MUSIC_DIR"
+echo "-----------------------------------"
+
+for file in *.mp3; do
+    [ -f "$file" ] || continue
+    
+    # Clean up the filename
+    newname=$(echo "$file" | \
+        sed 's/_/ /g' | \
+        sed 's/(Official[^)]*)//g' | \
+        sed 's/(mp3\.pm)//g' | \
+        sed 's/ - PagalNew//g' | \
+        sed 's/320 Kbps//g' | \
+        sed 's/  */ /g' | \
+        sed 's/ *\.mp3/.mp3/g')
+    
+    if [ "$file" != "$newname" ]; then
+        echo "Renaming:"
+        echo "  From: $file"
+        echo "  To:   $newname"
+        mv "$file" "$newname"
+        echo ""
+    fi
+done
+
+echo "Done!"

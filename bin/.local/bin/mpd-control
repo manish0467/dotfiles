@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# Check if MPD is running
+if ! pgrep -x mpd >/dev/null; then
+    notify-send "MPD" "MPD is not running"
+    exit 1
+fi
+
+# Build menu options (streamlined - only discovery & management)
+OPTIONS="🧠 Smart Play (Intelligence)
+Search & Play
+Add to Queue
+View Queue
+Shuffle Queue
+📊 Listening Stats
+Open rmpc"
+
+# Show menu with rofi
+CHOICE=$(echo "$OPTIONS" | rofi -dmenu -i \
+    -p "🎵 MPD Control" \
+    -theme-str 'window {width: 30%;}' \
+    -theme-str 'listview {columns: 1; lines: 7;}' \
+    -theme-str 'element-text {font: "Sans 16";}' \
+    -theme-str 'inputbar {font: "Sans 16";}')
+
+case "$CHOICE" in
+"🧠 Smart Play (Intelligence)")
+    ~/.local/bin/mpd-intelligent-launcher.sh
+    ;;
+"Search & Play")
+    ~/.local/bin/mpd-search-play
+    ;;
+"Add to Queue")
+    ~/.local/bin/mpd-queue-add
+    ;;
+"View Queue")
+    ~/.local/bin/mpd-queue-manage
+    ;;
+"Shuffle Queue")
+    mpc shuffle
+    notify-send "MPD" "Queue shuffled"
+    ;;
+"📊 Listening Stats")
+    kitty -e ~/.local/bin/mpd-stats.sh
+    ;;
+"Open rmpc")
+    omarchy-launch-or-focus-tui rmpc
+    ;;
+esac

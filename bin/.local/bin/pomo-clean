@@ -1,0 +1,10 @@
+#!/bin/bash
+
+LOG="$HOME/.local/state/pomodoro/log.csv"
+KEEP_DAYS=30
+
+[ ! -f "$LOG" ] && exit 0
+
+awk -F, -v cutoff="$(date -d "$KEEP_DAYS days ago" +%F)" '
+$1 >= cutoff
+' "$LOG" > "$LOG.tmp" && mv "$LOG.tmp" "$LOG"

@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Smart MPD Play script with rofi
+#   Priority: lowest play count → oldest last-played → random
+# ──────────────────────────────────────────────────────────────────────────────
+
+DB="$HOME/.local/share/mpd_playcount.db"
+LASTPLAY_DB="$HOME/.local/share/mpd_lastplayed.db"
+
+mkdir -p "$(dirname "$DB")" "$(dirname "$LASTPLAY_DB")"
+touch "$DB" "$LASTPLAY_DB"
+
+# Get only actual audio files (strict filter + no empty lines)
+ALL_SONGS=$(mpc listall | grep -E '\.(mp3|flac|wav|ogg|m4a|opus|aac)$' | grep -v '^$')
+
+# Initialize entries if missing
+while IFS= read -r song; do
+    [ -z "$song" ] && continue
+
+    grep -qF "$song|" "$DB" || echo "$song|0" >>"$DB"
+    grep -qF "$song|" "$LASTPLAY_DB" || echo "$song|0" >>"$LASTPLAY_DB"
+done <<<"$ALL_SONGS"
+
+# ─── Build sortable list ─────────────────────────────────────────────────────
+# Format: plays|lastplayed|random|basename|fullpath
+
+SORTED=$(while IFS= read -r song; do
+    [ -z "$song" ] && continue
+
+    plays=$(grep -F "$song|" "$DB" | cut -d'|' -f2 || echo 0)
+    last=$(grep -F "$song|" "$LASTPLAY_DB" | cut -d'|' -f2 || echo 0)
+
+    name=$(basename "$song")
+    name="${name%.*}" # remove extension
+
+    rand=$RANDOM
+
+    printf '%d|%d|%d|%s|%s\n' "$plays" "$last" "$rand" "$name" "$song"
+done <<<"$ALL_SONGS" | sort -t'|' -k1,1n -k2,2n -k3,3n)
+
+# ─── Build rofi-friendly list ────────────────────────────────────────────────
+ROFI_ENTRIES=""
+while IFS='|' read -r plays last rand name fullpath; do
+    # Skip broken/empty lines
+    [ -z "$fullpath" ] || [ -z "$name" ] && continue
+
+    ROFI_ENTRIES+="[♪${plays}] ${name}"$'\n'
+done <<<"$SORTED"
+
+# If nothing to show → exit early
+[ -z "$ROFI_ENTRIES" ] && {
+    notify-send "♪ Smart Play" "No songs found in MPD library"
+    exit 1
+}
+
+# ─── Show rofi menu ──────────────────────────────────────────────────────────
+SELECTED=$(printf '%s' "$ROFI_ENTRIES" | rofi -dmenu -i \
+    -p "🎵 Smart Play" \
+    -mesg "Sorted by: play count → freshness → random shuffle on ties" \
+    -theme-str 'window {width: 80%; height: 65%;}' \
+    -theme-str 'listview {columns: 3; lines: 16; fixed-columns: true;}' \
+    -theme-str 'element {padding: 6px;}')
+
+[ -z "$SELECTED" ] && exit 0
+
+# Extract clean name without the [♪NN] prefix
+clean_name="${SELECTED#*] }"
+
+# Find matching full path (should be unique)
+SONG_PATH=$(while IFS='|' read -r _ _ _ name path; do
+    [ "$name" = "$clean_name" ] && {
+        echo "$path"
+        break
+    }
+done <<<"$SORTED")
+
+[ -z "$SONG_PATH" ] && {
+    notify-send "♪ Error" "Could not find path for:\n$clean_name"
+    exit 1
+}
+
+# ─── Play it ─────────────────────────────────────────────────────────────────
+mpc clear
+mpc add "$SONG_PATH"
+mpc play
+
+# ─── Update databases ────────────────────────────────────────────────────────
+NOW=$(date +%s)
+
+# Increment play count
+awk -F'|' -v song="$SONG_PATH" '
+    BEGIN {OFS="|"}
+    $1 == song { $2 += 1; found=1 }
+    { print }
+    END { if (!found) print song "|1" }
+' "$DB" >"$DB.tmp" && mv "$DB.tmp" "$DB"
+
+# Update last played timestamp
+awk -F'|' -v song="$SONG_PATH" -v now="$NOW" '
+    BEGIN {OFS="|"}
+    $1 == song { $2 = now; found=1 }
+    { print }
+    END { if (!found) print song "|" now }
+' "$LASTPLAY_DB" >"$LASTPLAY_DB.tmp" && mv "$LASTPLAY_DB.tmp" "$LASTPLAY_DB"
+
+# ─── Notify ──────────────────────────────────────────────────────────────────
+notify-send "▶ Now Playing" "$(basename "$SONG_PATH")"
+
+exit 0

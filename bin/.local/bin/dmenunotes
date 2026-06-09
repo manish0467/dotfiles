@@ -1,0 +1,157 @@
+#!/bin/sh
+
+NOTES_DIR="$HOME/Notes"
+# You can remove these two lines if you don't need them anymore
+# TERMINAL="${TERMINAL:-ghostty}"
+# EDITOR="${EDITOR:-nvim}"
+
+# Perfect dmenu styling remains the same
+DMENU_OPTS="-i -l 15 -fn monospace:pixelsize=16 -nb #1a1b26 -nf #a9b1d6 -sb #7aa2f7 -sf #1a1b26 -p"
+
+new_note() {
+    name=$(printf "" | dmenu $DMENU_OPTS "📝 New note:")
+    [ -z "$name" ] && exit 0
+
+    # Add .md extension if not present (Typora loves markdown)
+    case "$name" in
+    *.md | *.txt) ;;
+    *) name="$name.md" ;;
+    esac
+
+    filepath="$NOTES_DIR/$name"
+
+    if [ ! -f "$filepath" ]; then
+        printf "# %s\nCreated: %s\n\n" "$name" "$(date '+%Y-%m-%d %H:%M')" >"$filepath"
+    fi
+
+    # The only important change is here ↓↓↓
+    setsid -f typora "$filepath" >/dev/null 2>&1
+    # If Typora is Flatpak → use: flatpak run io.typora.Typora "$filepath"
+}
+
+# Create notes directory if it doesn't exist
+mkdir -p "$NOTES_DIR"
+
+# Build the list (same as before)
+note_list=$(cd "$NOTES_DIR" 2>/dev/null && ls -t 2>/dev/null | head -n 50)
+
+if [ -z "$note_list" ]; then
+    choice=$(printf "📝 New\n💭 (No notes yet)" | dmenu $DMENU_OPTS "📚 Notes:")
+else
+    choice=$(printf "📝 New\n%s" "$note_list" | dmenu $DMENU_OPTS "📚 Notes:")
+fi
+
+case "$choice" in
+"📝 New")
+    new_note
+    ;;
+"💭 (No notes yet)")
+    new_note
+    ;;
+"")
+    # User pressed escape, do nothing
+    exit 0
+    ;;
+*)
+    [ -n "$choice" ] && setsid -f typora "$NOTES_DIR/$choice" >/dev/null 2>&1
+    # Flatpak version: flatpak run io.typora.Typora "$NOTES_DIR/$choice"
+    ;;
+esac
+
+# NOTES_DIR="$HOME/Notes"
+# TERMINAL="${TERMINAL:-ghostty}"
+# EDITOR="${EDITOR:-nvim}"
+#
+# # Perfect dmenu styling for 1920x1080 with Tokyo Night colors
+# # Using pixelsize for better control on your screen
+# DMENU_OPTS="-i -l 15 -fn monospace:pixelsize=16 -nb #1a1b26 -nf #a9b1d6 -sb #7aa2f7 -sf #1a1b26 -p"
+#
+# new_note() {
+#     name=$(printf "" | dmenu $DMENU_OPTS "📝 New note:")
+#     [ -z "$name" ] && exit 0
+#
+#     # Add .txt extension if not present
+#     case "$name" in
+#     *.txt | *.md) ;;
+#     *) name="$name.md" ;;
+#     esac
+#
+#     # Create the file with timestamp if it doesn't exist
+#     filepath="$NOTES_DIR/$name"
+#     if [ ! -f "$filepath" ]; then
+#         printf "# %s\nCreated: %s\n\n" "$name" "$(date '+%Y-%m-%d %H:%M')" >"$filepath"
+#     fi
+#
+#     setsid -f "$TERMINAL" -e "$EDITOR" "$filepath" >/dev/null 2>&1
+# }
+#
+# # Create notes directory if it doesn't exist
+# mkdir -p "$NOTES_DIR"
+#
+# # Build the list with better formatting
+# note_list=$(cd "$NOTES_DIR" 2>/dev/null && ls -t 2>/dev/null | head -n 50)
+#
+# if [ -z "$note_list" ]; then
+#     choice=$(printf "📝 New\n💭 (No notes yet)" | dmenu $DMENU_OPTS "📚 Notes:")
+# else
+#     choice=$(printf "📝 New\n%s" "$note_list" | dmenu $DMENU_OPTS "📚 Notes:")
+# fi
+#
+# case "$choice" in
+# "📝 New")
+#     new_note
+#     ;;
+# "💭 (No notes yet)")
+#     new_note
+#     ;;
+# "")
+#     # User pressed escape, do nothing
+#     exit 0
+#     ;;
+# *)
+#     [ -n "$choice" ] && setsid -f "$TERMINAL" -e "$EDITOR" "$NOTES_DIR/$choice" >/dev/null 2>&1
+#     ;;
+# esac
+
+# - `My default config`
+#
+# NOTES_DIR="$HOME/Notes"
+# TERMINAL="${TERMINAL:-ghostty}"
+# EDITOR="${EDITOR:-nvim}"
+#
+# new_note() {
+#     name=$(printf "" | dmenu -p "New note name:")
+#     [ -z "$name" ] && exit 0
+#     setsid -f "$TERMINAL" -e "$EDITOR" "$NOTES_DIR/$name.txt" >/dev/null 2>&1
+# }
+#
+# choice=$(printf "New\n%s" "$(ls -t "$NOTES_DIR" 2>/dev/null)" \
+#     | dmenu -l 10 -p "Notes:")
+#
+# case "$choice" in
+#     New)
+#         new_note
+#         ;;
+#     *)
+#         [ -n "$choice" ] && setsid -f "$TERMINAL" -e "$EDITOR" "$NOTES_DIR/$choice" >/dev/null 2>&1
+#         ;;
+# esac
+
+# -`Bread's config`
+
+# folder="home/alen/Notes/"
+#
+# newnote () {
+#         name="$(echo "" | dmenu -c -sb "#a3be8c" -nf "#d8dee9" -p "Enter a name:")"
+#         setsid -f "$TERMINAL" -e nvim "$folder/$name.txt" >/dev/null 2>&1
+# }
+#
+# selected () {
+#     choice=$(echo -e "New\n$(ls -t "$folder")" | dmenu -c -l 5 -p "Choose note or create new:")
+#     case "$choice" in
+#     New) newnote ;;
+#     *) setsid -f "TERMINAL" -e nvim "$folder/$choice" >/dev/null 2>&1
+#     esac
+# }
+#
+# selected

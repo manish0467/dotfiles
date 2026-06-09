@@ -20,6 +20,8 @@ qutebrowser/
     └── qutebrowser/
 ```
 
+Shell scripts live in `bin/` and map to `.local/bin/` in the home directory.
+
 This ensures files are symlinked correctly into:
 
 ```
@@ -54,6 +56,12 @@ Stow a program:
 
 ```
 stow qutebrowser
+```
+
+Stow the shell scripts:
+
+```
+stow bin
 ```
 
 This will create symlinks inside your home directory.
