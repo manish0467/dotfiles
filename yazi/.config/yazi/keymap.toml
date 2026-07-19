@@ -1,0 +1,22 @@
+# Custom keybindings layered on top of Yazi defaults.
+# Enter still uses the default `open` action (Neovim via $EDITOR for text files).
+
+[[mgr.prepend_keymap]]
+on   = "?"
+run  = "help"
+desc = "Show keybindings map"
+
+[[mgr.prepend_keymap]]
+on   = "<F1>"
+run  = "help"
+desc = "Show keybindings map"
+
+[[mgr.prepend_keymap]]
+on   = "C"
+run  = "plugin external-tools code"
+desc = "Open current directory in VS Code"
+
+[[mgr.prepend_keymap]]
+on   = "T"
+run  = "plugin external-tools ghostty"
+desc = "Open Ghostty in current directory"
