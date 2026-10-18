@@ -1,1 +1,1 @@
-/home/alen/.config/omarchy/current/theme/neovim.lua
+/home/alen/.local/state/omarchy/current/theme/neovim.lua

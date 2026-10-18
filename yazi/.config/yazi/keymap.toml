@@ -20,3 +20,8 @@ desc = "Open current directory in VS Code"
 on   = "T"
 run  = "plugin external-tools ghostty"
 desc = "Open Ghostty in current directory"
+
+[[mgr.prepend_keymap]]
+on   = [ "g", "g" ]
+run  = "shell 'lazygit' --block"
+desc = "Run Lazygit"
