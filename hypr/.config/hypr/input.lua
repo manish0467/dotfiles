@@ -1,6 +1,13 @@
 -- Keep only your personal input overrides here. Uncommented settings below
 -- replace Omarchy's defaults.
 
+-- Classic Caps Lock (Omarchy default remaps it: compose:caps,shift:both_capslock_cancel).
+hl.config({
+	input = {
+		kb_options = "",
+	},
+})
+
 -- Keyboard layout and options.
 -- See https://wiki.hypr.land/Configuring/Basics/Variables/#input
 -- hl.config({
