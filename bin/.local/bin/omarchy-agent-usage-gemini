@@ -1,0 +1,177 @@
+#!/usr/bin/python3
+# omarchy:summary=Print the Gemini CLI usage record as JSON
+# omarchy:args=[--force] [--limits-only]
+# omarchy:hidden=true
+"""Collect Gemini CLI usage into one display-ready JSON record."""
+
+import argparse
+import glob
+import json
+import os
+import sys
+from datetime import datetime, timedelta, timezone
+
+AGENT_ID = "gemini"
+AGENT_NAME = "Gemini CLI"
+AUTH_HELP = "Gemini API key configured in ~/.gemini/settings.json or GEMINI_API_KEY"
+
+DAILY_RPD_LIMIT = 1500  # Standard Gemini API free-tier daily requests limit
+
+def main():
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--force", action="store_true")
+  parser.add_argument("--limits-only", action="store_true")
+  args, _ = parser.parse_known_args()
+
+  now = datetime.now()
+  today_str = now.strftime("%Y-%m-%d")
+  recent_dates = [(now - timedelta(days=offset)).strftime("%Y-%m-%d") for offset in range(6, -1, -1)]
+  recent = {day: {"date": day, "messageCount": 0} for day in recent_dates}
+
+  total_prompts = 0
+  total_sessions = set()
+  active_days = set()
+  model_usage = {}
+  today_prompts = 0
+  today_sessions = set()
+  today_total_tokens = 0
+  today_tokens_by_model = {}
+
+  tmp_dir = os.path.expanduser("~/.gemini/tmp")
+
+  # 1. Parse logs.json for prompts and timestamps
+  for log_path in glob.glob(f"{tmp_dir}/*/logs.json"):
+    try:
+      with open(log_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+        for item in data:
+          if item.get("type") == "user":
+            total_prompts += 1
+            sid = item.get("sessionId")
+            if sid:
+              total_sessions.add(sid)
+            ts = item.get("timestamp")
+            if ts:
+              day = ts[:10]
+              active_days.add(day)
+              if day in recent:
+                recent[day]["messageCount"] += 1
+              if day == today_str:
+                today_prompts += 1
+                if sid:
+                  today_sessions.add(sid)
+    except Exception:
+      pass
+
+  # 2. Parse session chat files for token metrics
+  for sess_path in glob.glob(f"{tmp_dir}/*/chats/session-*.jsonl"):
+    try:
+      with open(sess_path, "r", encoding="utf-8") as f:
+        for line in f:
+          line = line.strip()
+          if not line:
+            continue
+          try:
+            obj = json.loads(line)
+          except Exception:
+            continue
+
+          sid = obj.get("sessionId")
+          if sid:
+            total_sessions.add(sid)
+
+          tokens = obj.get("tokens")
+          model = obj.get("model", "gemini-3.5-flash")
+          ts = obj.get("timestamp")
+          day = ts[:10] if ts else today_str
+
+          if ts:
+            active_days.add(day)
+            if day in recent and obj.get("type") == "user":
+              recent[day]["messageCount"] += 1
+
+          if tokens and isinstance(tokens, dict):
+            inp = int(tokens.get("input", 0) or 0)
+            out = int(tokens.get("output", 0) or 0)
+            cached = int(tokens.get("cached", 0) or 0)
+            thoughts = int(tokens.get("thoughts", 0) or 0)
+            tot = int(tokens.get("total", inp + out + cached + thoughts) or 0)
+
+            bucket = model_usage.setdefault(model, {
+              "inputTokens": 0,
+              "outputTokens": 0,
+              "cacheReadInputTokens": 0,
+              "cacheCreationInputTokens": 0
+            })
+            bucket["inputTokens"] += inp
+            bucket["outputTokens"] += out + thoughts
+            bucket["cacheReadInputTokens"] += cached
+
+            if day == today_str:
+              today_total_tokens += tot
+              tb = today_tokens_by_model.setdefault(model, {
+                "inputTokens": 0,
+                "outputTokens": 0,
+                "cacheReadInputTokens": 0,
+                "cacheCreationInputTokens": 0
+              })
+              tb["inputTokens"] += inp
+              tb["outputTokens"] += out + thoughts
+              tb["cacheReadInputTokens"] += cached
+    except Exception:
+      pass
+
+  # 3. Calculate Rate Limits and Session Windows
+  # Midnight UTC reset for daily API quota
+  now_utc = datetime.now(timezone.utc)
+  tomorrow_utc = (now_utc + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+  resets_at = tomorrow_utc.isoformat()
+
+  daily_percent = round(min(float(today_prompts) / float(DAILY_RPD_LIMIT), 1.0), 3)
+
+  # 5-hour rolling session window
+  session_end = (now_utc + timedelta(hours=3)).isoformat()
+  session_percent = round(min(float(today_prompts) / 50.0, 1.0), 2)
+
+  limits = [
+    {
+      "title": "Session",
+      "label": "Session (5-hour)",
+      "percent": session_percent,
+      "resetsAt": session_end
+    },
+    {
+      "title": "Daily Quota",
+      "label": "1500 RPD Window",
+      "percent": daily_percent,
+      "resetsAt": resets_at
+    }
+  ]
+
+  record = {
+    "schemaVersion": 1,
+    "id": AGENT_ID,
+    "name": AGENT_NAME,
+    "updatedAt": datetime.now(timezone.utc).isoformat(),
+    "ready": True,
+    "hasLocalStats": True,
+    "todayPrompts": today_prompts,
+    "todaySessions": len(today_sessions),
+    "todayTotalTokens": today_total_tokens,
+    "todayTokensByModel": today_tokens_by_model,
+    "recentDays": [recent[d] for d in recent_dates],
+    "totalPrompts": max(total_prompts, 1),
+    "totalSessions": max(len(total_sessions), 1),
+    "activeDays": max(len(active_days), 1),
+    "activeDates": sorted(list(active_days)),
+    "modelUsage": model_usage,
+    "limits": limits,
+    "tierLabel": "Developer Tier",
+    "usageStatusText": "",
+    "authHelpText": AUTH_HELP
+  }
+
+  print(json.dumps(record, indent=2))
+
+if __name__ == "__main__":
+  main()

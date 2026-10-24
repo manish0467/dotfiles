@@ -1,0 +1,13 @@
+configuration {
+    modi:           "drun,run,window";
+    font:           "JetBrainsMono Nerd Font 12";
+    show-icons:     true;
+    icon-theme:     "Papirus-Dark";
+    terminal:       "xdg-terminal-exec";
+    drun-display-format: "{name}";
+    hover-select:   true;
+    me-select-entry: "";
+    me-accept-entry: "MousePrimary";
+}
+
+@theme "~/.config/rofi/themes/omarchy.rasi"

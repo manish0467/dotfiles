@@ -1,0 +1,124 @@
+#!/bin/bash
+
+# Toggle file search overlay. Thin wrapper over omarchy-shell IPC.
+
+set -euo pipefail
+
+PLUGIN_ID="jesseburlamaque.omarchy-find"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+install_cli_and_desktop() {
+  mkdir -p "$HOME/.local/bin"
+  if [ -f "$SCRIPT_DIR/omarchy-find" ]; then
+    install -m 755 "$SCRIPT_DIR/omarchy-find" "$HOME/.local/bin/omarchy-find"
+  fi
+
+  if [ -f "$ROOT_DIR/share/omarchy-find.desktop" ]; then
+    mkdir -p "$HOME/.local/share/applications"
+    install -m 644 "$ROOT_DIR/share/omarchy-find.desktop" "$HOME/.local/share/applications/omarchy-find.desktop"
+    command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$HOME/.local/share/applications" || true
+  fi
+}
+
+verb="${1:-toggle}"
+payload="${2:-}"
+[ -z "$payload" ] && payload='{}'
+
+case "$verb" in
+  toggle)
+    exec omarchy-shell shell toggle "$PLUGIN_ID" "$payload"
+    ;;
+  open | summon)
+    exec omarchy-shell shell summon "$PLUGIN_ID" "$payload"
+    ;;
+  close | hide)
+    exec omarchy-shell shell hide "$PLUGIN_ID"
+    ;;
+  install-cli)
+    install_cli_and_desktop
+    echo "✓ CLI omarchy-find instalado em $HOME/.local/bin/omarchy-find"
+    echo "✓ Atalho de aplicativo registrado em $HOME/.local/share/applications/omarchy-find.desktop"
+    ;;
+  setup-keybind | install-keybind)
+    install_cli_and_desktop
+    KEYBIND="${payload:-ALT + SPACE}"
+    [ "$KEYBIND" = "{}" ] && KEYBIND="ALT + SPACE"
+    if ! echo "$KEYBIND" | grep -qE '^[A-Za-z0-9 _+]+$'; then
+      echo "omarchy-find: keybind inválido '$KEYBIND'. Use formato como 'ALT + SPACE' ou 'SUPER + F'." >&2
+      exit 1
+    fi
+    BINDINGS_DIR="$HOME/.config/hypr"
+    BINDINGS_FILE="$BINDINGS_DIR/bindings.lua"
+
+    mkdir -p "$BINDINGS_DIR"
+    if [ ! -f "$BINDINGS_FILE" ]; then
+      if [ -f "/usr/share/omarchy/config/hypr/bindings.lua" ]; then
+        cp "/usr/share/omarchy/config/hypr/bindings.lua" "$BINDINGS_FILE"
+      else
+        cat <<'EOF' > "$BINDINGS_FILE"
+-- Keep only your personal keybinding overrides here.
+EOF
+      fi
+    fi
+
+    # Remove previous omarchy-find bindings if present
+    if grep -E -q "omarchy-find|jesseburlamaque\.omarchy-find" "$BINDINGS_FILE"; then
+      sed -i '/Omarchy Find/d' "$BINDINGS_FILE"
+      sed -i '/omarchy-find/d' "$BINDINGS_FILE"
+      sed -i '/jesseburlamaque\.omarchy-find/d' "$BINDINGS_FILE"
+    fi
+
+    cat <<EOF >> "$BINDINGS_FILE"
+
+-- Omarchy Find file search overlay
+o.bind("$KEYBIND", "Find files & folders", "omarchy-shell shell toggle $PLUGIN_ID")
+EOF
+
+    echo "✓ CLI instalado em $HOME/.local/bin/omarchy-find"
+    echo "✓ Atalho global '$KEYBIND' configurado em $BINDINGS_FILE"
+    if command -v hyprctl >/dev/null 2>&1; then
+      hyprctl reload >/dev/null 2>&1 || true
+      echo "✓ Configuração do Hyprland recarregada."
+    fi
+    ;;
+  remove-keybind | uninstall-keybind)
+    BINDINGS_FILE="$HOME/.config/hypr/bindings.lua"
+    if [ -f "$BINDINGS_FILE" ]; then
+      sed -i '/Omarchy Find/d' "$BINDINGS_FILE"
+      sed -i '/omarchy-find/d' "$BINDINGS_FILE"
+      sed -i '/jesseburlamaque\.omarchy-find/d' "$BINDINGS_FILE"
+      echo "✓ Atalho do Omarchy Find removido de $BINDINGS_FILE"
+      if command -v hyprctl >/dev/null 2>&1; then
+        hyprctl reload >/dev/null 2>&1 || true
+        echo "✓ Configuração do Hyprland recarregada."
+      fi
+    else
+      echo "Nenhum arquivo $BINDINGS_FILE encontrado."
+    fi
+    ;;
+  -h | --help | help)
+    cat <<USAGE
+Usage: omarchy-find [command] [argument]
+
+Commands:
+  toggle [payload]            Open Find, or close if already open (default).
+  open|summon [payload]       Always open. Optional payload: '{"query":"term"}'
+  close|hide                  Close the search overlay.
+  setup-keybind [shortcut]    Configure global shortcut in Hyprland (default: "ALT + SPACE").
+  remove-keybind              Remove global shortcut from Hyprland bindings.
+  install-cli                 Install omarchy-find to ~/.local/bin and .desktop launcher.
+
+Examples:
+  omarchy-find
+  omarchy-find open '{"query":"notes"}'
+  omarchy-find setup-keybind
+  omarchy-find setup-keybind "SUPER + F"
+  omarchy-find remove-keybind
+USAGE
+    ;;
+  *)
+    echo "omarchy-find: unknown command '$verb'. Try 'omarchy-find --help'." >&2
+    exit 2
+    ;;
+esac

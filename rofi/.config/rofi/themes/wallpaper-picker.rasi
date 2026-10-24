@@ -1,0 +1,68 @@
+/* Compact horizontal wallpaper strip — extends Omarchy */
+@import "omarchy.rasi"
+
+window {
+    location:           center;
+    anchor:             center;
+    width:              58%;
+    border-radius:      12px;
+    border:             1px;
+    padding:            0;
+}
+
+mainbox {
+    padding:            8px 12px 10px 12px;
+    spacing:            0;
+}
+
+inputbar {
+    margin:             0 0 6px 0;
+    padding:            6px 10px;
+    border-radius:      6px;
+}
+
+prompt {
+    font:               "JetBrainsMono Nerd Font 11";
+}
+
+entry {
+    placeholder:        "filter…";
+    placeholder-color:  #565f89;
+}
+
+listview {
+    columns:            1;
+    lines:              4;
+    spacing:            5px;
+    fixed-height:       true;
+    cycle:              true;
+    scrollbar:          true;
+}
+
+element {
+    orientation:        horizontal;
+    padding:            3px 5px;
+    border-radius:      6px;
+    spacing:            5px;
+    children:           [element-icon, element-text];
+}
+
+element selected {
+    background-color:   @bg2;
+    border:             1px;
+    border-color:       @accent;
+}
+
+element-icon {
+    size:               3.6em;
+}
+
+element-text {
+    font:               "JetBrainsMono Nerd Font 9";
+    text-color:         @fg0;
+    vertical-align:     0.5;
+}
+
+element selected element-text {
+    text-color:         @fg1;
+}

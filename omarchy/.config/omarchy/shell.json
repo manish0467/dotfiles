@@ -1,0 +1,139 @@
+{
+  "bar": {
+    "centerAnchor": "omarchy.clock",
+    "layout": {
+      "center": [
+        {
+          "id": "omarchy.keyboard-layout"
+        },
+        {
+          "id": "omarchy.indicators"
+        },
+        {
+          "format": "dddd HH:mm",
+          "formatAlt": "d MMMM 'W'ww yyyy",
+          "id": "omarchy.clock",
+          "verticalFormat": "HH\n—\nmm"
+        },
+        {
+          "id": "omarchy.weather"
+        },
+        {
+          "id": "tristonarmstrong.dictionary"
+        },
+        {
+          "id": "omarchy.system-update"
+        }
+      ],
+      "left": [
+        {
+          "id": "omarchy.menu"
+        },
+        {
+          "id": "tornikegomareli.spaces",
+          "activeStyle": "subtle",
+          "animations": false,
+          "density": "compact",
+          "dimUnfocused": false,
+          "focusedTitle": false,
+          "groupApps": false,
+          "labelStyle": "number",
+          "previews": false,
+          "showApps": "all",
+          "showIcons": true,
+          "iconSize": 15
+        },
+        {
+          "id": "io.github.qempexe.altscape"
+        },
+        {
+          "id": "karamble.omagihu"
+        }
+      ],
+      "right": [
+        {
+          "id": "omarchy.tray"
+        },
+        {
+          "id": "brianirish.screensaver"
+        },
+        {
+          "id": "realme-buds.control"
+        },
+        {
+          "id": "jobo.omatype"
+        },
+        {
+          "id": "flux"
+        },
+        {
+          "id": "omaplug",
+          "autoCheckUpdates": false,
+          "bulkUpdateScope": "all"
+        },
+        {
+          "id": "alen.agents"
+        },
+        {
+          "id": "evindor.keystroke"
+        },
+        {
+          "id": "jesseburlamaque.omarchy-find"
+        },
+        {
+          "id": "akshar.radio-atlas"
+        },
+        {
+          "id": "omarchy.bluetooth"
+        },
+        {
+          "id": "omarchy.network"
+        },
+        {
+          "id": "omarchy.audio"
+        },
+        {
+          "id": "omarchy.monitor"
+        },
+        {
+          "id": "omarchy.power",
+          "showPercentage": false
+        }
+      ]
+    },
+    "position": "top",
+    "transparent": true,
+    "id": "alen.bar"
+  },
+  "idle": {
+    "lock": 600,
+    "screensaver": 150
+  },
+  "plugins": [
+    {
+      "id": "io.github.pantherdev2024.quartermaster"
+    },
+    {
+      "id": "io.github.sirjul1337.lock-explorer",
+      "boot": "snapshot:card",
+      "design": "poster",
+      "avatar": "/home/alen/Pictures/screenshot-2026-09-15_16-11-48.png"
+    },
+    {
+      "id": "io.github.codesmith28.omalt-tab"
+    },
+    {
+      "id": "io.github.maajix.spotlight"
+    },
+    {
+      "id": "se.mindfulstack.omascape"
+    }
+  ],
+  "version": 1,
+  "disabledPlugins": [
+    "omarchy.lock"
+  ],
+  "cloneSourceRestores": [
+    "io.github.sirjul1337.lock-explorer"
+  ]
+}
