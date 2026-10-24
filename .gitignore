@@ -4,6 +4,13 @@
 *.swp
 *.swo
 
+# Backup files (git history is the backup)
+
+*.bak
+*.bak.*
+*.bak-*
+*.backup
+
 # Cache / temp
 
 *.log
