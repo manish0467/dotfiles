@@ -2,6 +2,13 @@
 
 Personal configuration for an **Arch Linux** desktop running [Omarchy](https://omarchy.org/) (Hyprland), managed with **GNU Stow** for clean, reversible symlinks.
 
+## Screenshots
+
+<!-- Add images to assets/ and reference them here, e.g. -->
+<!-- ![Desktop](assets/desktop.png) -->
+
+_Coming soon._
+
 ## What's here
 
 | Package | What it is | Installs to |
@@ -31,9 +38,48 @@ qutebrowser/
 
 ## Requirements
 
-- git
-- GNU Stow (`sudo pacman -S stow` on Arch)
-- The programs themselves (most are in the standard Arch/Omarchy repos)
+All package names below are the real Arch packages (resolved via `pacman -Qo` on a live Omarchy install).
+
+**1. Deploying the dotfiles:**
+
+```bash
+sudo pacman -S --needed git stow
+```
+
+**2. Programs the packages configure** — install only what you plan to stow:
+
+| Package | Program | Arch package |
+|---|---|---|
+| `zsh` | Zsh shell | `zsh` |
+| `starship` | Starship prompt | `starship` |
+| `hypr` | Hyprland + Omarchy 4 Lua config | ships with [Omarchy](https://omarchy.org/) |
+| `nvim` | Neovim | `neovim` |
+| `qutebrowser` | Qutebrowser browser | `qutebrowser` |
+| `yazi` | Yazi file manager | `yazi` |
+| `rofi` / `tofi` | App launchers | `rofi`, `tofi` |
+| `ghostty` / `alacritty` | Terminals | `ghostty`, `alacritty` |
+| `tmux` | Terminal multiplexer | `tmux` |
+| `mpv` / `mpd` | Media player / music daemon | `mpv`, `mpd` |
+| `btop` | System monitor | `btop` |
+| `waybar` | Status bar — **legacy**, Omarchy 4 uses its own shell | `waybar` (optional) |
+
+One-shot for everything except `waybar`:
+
+```bash
+sudo pacman -S --needed zsh starship neovim qutebrowser yazi rofi tofi \
+  ghostty alacritty tmux mpv mpd btop
+```
+
+**3. Dependencies used by the `bin/` scripts:**
+
+```bash
+sudo pacman -S --needed libnotify mpc libpulse brightnessctl imagemagick \
+  slurp jq wl-clipboard fd
+```
+
+A few older scripts additionally use `pywal`, `swww`, `swappy`, `hyprshade`,
+`dunst`, or `light` (AUR) — install those only if you run the specific
+scripts that need them.
 
 ## Installation
 
